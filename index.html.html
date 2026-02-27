@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Observatório EJA & Gestão Escolar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #0d0d0d;
+      --paper: #f2ede4;
+      --accent: #c94c1a;
+      --accent2: #1a4c8f;
+      --muted: #7a7065;
+      --line: rgba(13,13,13,0.15);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--paper);
+      color: var(--ink);
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      width: 10px; height: 10px;
+      background: var(--accent);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none; z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s, width 0.2s, height 0.2s;
+      mix-blend-mode: multiply;
+    }
+    .cursor-ring {
+      width: 36px; height: 36px;
+      border: 1px solid var(--ink);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none; z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform 0.18s ease, width 0.25s, height 0.25s;
+    }
+    a:hover ~ .cursor, button:hover ~ .cursor { width: 20px; height: 20px; }
+
+    /* HEADER */
+    header {
+      position: relative;
+      padding: 80px 60px 60px;
+      border-bottom: 2px solid var(--ink);
+      overflow: hidden;
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .header-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: end;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .header-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .header-label::before {
+      content: ''; width: 30px; height: 1px; background: var(--accent);
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(36px, 5vw, 72px);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+
+    header h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .header-desc {
+      font-size: 13px;
+      line-height: 1.7;
+      color: rgba(242,237,228,0.65);
+      max-width: 340px;
+      align-self: end;
+    }
+
+    .header-year {
+      position: absolute;
+      bottom: 24px; right: 60px;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      color: rgba(242,237,228,0.3);
+      text-transform: uppercase;
+    }
+
+    /* Decorative lines */
+    .deco-lines {
+      position: absolute;
+      top: 0; right: -100px;
+      width: 400px; height: 100%;
+      opacity: 0.04;
+      pointer-events: none;
+    }
+    .deco-lines line { stroke: #f2ede4; stroke-width: 1; }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--paper);
+      border-bottom: 1px solid var(--line);
+      display: flex; align-items: center;
+      padding: 0 60px;
+      gap: 0;
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-index {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-right: 30px;
+      padding: 20px 0;
+      white-space: nowrap;
+      border-right: 1px solid var(--line);
+      padding-right: 30px;
+    }
+
+    nav button {
+      background: none; border: none;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: none;
+      padding: 20px 24px;
+      transition: color 0.2s;
+      position: relative;
+    }
+    nav button::after {
+      content: '';
+      position: absolute; bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 2px;
+      background: var(--accent);
+      transition: width 0.25s;
+    }
+    nav button:hover, nav button.active {
+      color: var(--ink);
+    }
+    nav button:hover::after, nav button.active::after {
+      width: calc(100% - 48px);
+    }
+
+    /* MAIN */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 60px;
+    }
+
+    /* SECTIONS */
+    section {
+      padding: 80px 0;
+      border-bottom: 1px solid var(--line);
+      display: none;
+      animation: fadeUp 0.5s ease forwards;
+    }
+    section.active { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-header {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 30px;
+      align-items: start;
+      margin-bottom: 60px;
+    }
+
+    .section-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 64px;
+      font-weight: 900;
+      color: var(--accent);
+      line-height: 1;
+      opacity: 0.35;
+      text-align: right;
+    }
+
+    .section-title-block h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(28px, 3.5vw, 48px);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+
+    .section-title-block .subtitle {
+      font-size: 12px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .prose {
+      max-width: 680px;
+      font-size: 15px;
+      line-height: 1.8;
+      color: #3a3530;
+      margin-bottom: 40px;
+    }
+
+    /* INTRO section */
+    #introducao .intro-pull {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(22px, 2.5vw, 32px);
+      font-style: italic;
+      line-height: 1.4;
+      color: var(--accent2);
+      border-left: 3px solid var(--accent2);
+      padding-left: 30px;
+      margin: 40px 0;
+      max-width: 600px;
+    }
+
+    /* CARDS */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 2px;
+      margin-top: 40px;
+    }
+
+    .card {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 36px 30px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s;
+    }
+    .card:hover { transform: translateY(-4px); }
+    .card::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 3px; height: 0;
+      background: var(--accent);
+      transition: height 0.4s;
+    }
+    .card:hover::before { height: 100%; }
+
+    .card-num {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .card h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+    .card p {
+      font-size: 13px;
+      line-height: 1.7;
+      color: rgba(242,237,228,0.65);
+    }
+
+    /* IMAGE block */
+    .img-block {
+      margin: 40px 0;
+      position: relative;
+    }
+    .img-block img {
+      width: 100%;
+      max-height: 380px;
+      object-fit: cover;
+      display: block;
+      filter: grayscale(30%) sepia(10%);
+    }
+    .img-caption {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+      margin-top: 10px;
+    }
+
+    /* Experiências list */
+    .exp-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .exp-list li {
+      display: grid;
+      grid-template-columns: 50px 1fr;
+      align-items: start;
+      gap: 20px;
+      padding: 28px 0;
+      border-top: 1px solid var(--line);
+      transition: background 0.2s;
+    }
+    .exp-list li:hover { background: rgba(13,13,13,0.03); padding-left: 8px; }
+    .exp-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 400;
+      color: var(--accent);
+      opacity: 0.5;
+      line-height: 1;
+      padding-top: 4px;
+    }
+    .exp-text strong {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .exp-text span {
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    /* Depoimentos */
+    .testimonials {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      margin-top: 40px;
+    }
+    .testimonial {
+      padding: 40px;
+      background: rgba(13,13,13,0.04);
+      position: relative;
+    }
+    .testimonial::before {
+      content: '\201C';
+      font-family: 'Playfair Display', serif;
+      font-size: 80px;
+      color: var(--accent);
+      opacity: 0.25;
+      position: absolute;
+      top: 10px; left: 30px;
+      line-height: 1;
+    }
+    .testimonial blockquote {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 17px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      padding-top: 20px;
+    }
+    .testimonial cite {
+      font-style: normal;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .testimonial cite::before {
+      content: ''; width: 20px; height: 1px; background: var(--muted);
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 2px solid var(--ink);
+      padding: 40px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .footer-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      font-style: italic;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    @media (max-width: 700px) {
+      header, nav, main, footer { padding-left: 24px; padding-right: 24px; }
+      .header-grid, .testimonials { grid-template-columns: 1fr; }
+      .section-header { grid-template-columns: 1fr; }
+      .section-num { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cur"></div>
+<div class="cursor-ring" id="ring"></div>
+
+<header>
+  <svg class="deco-lines" viewBox="0 0 400 300" preserveAspectRatio="none">
+    <line x1="0" y1="0" x2="400" y2="300"/>
+    <line x1="40" y1="0" x2="440" y2="300"/>
+    <line x1="80" y1="0" x2="480" y2="300"/>
+    <line x1="120" y1="0" x2="520" y2="300"/>
+    <line x1="160" y1="0" x2="560" y2="300"/>
+    <line x1="200" y1="0" x2="600" y2="300"/>
+    <line x1="240" y1="0" x2="640" y2="300"/>
+    <line x1="280" y1="0" x2="680" y2="300"/>
+    <line x1="0" y1="50" x2="400" y2="350"/>
+    <line x1="0" y1="100" x2="400" y2="400"/>
+    <line x1="0" y1="150" x2="400" y2="450"/>
+  </svg>
+  <div class="header-grid">
+    <div>
+      <div class="header-label">Estágio Supervisionado</div>
+      <h1>Observatório<br><em>EJA</em> &amp;<br>Gestão<br>Escolar</h1>
+    </div>
+    <p class="header-desc">
+      Reflexões, práticas e experiências sobre o estágio em Educação de Jovens e Adultos e em Gestão Escolar — espaço de formação, troca e transformação pedagógica.
+    </p>
+  </div>
+  <div class="header-year">Edição 2026</div>
+</header>
+
+<nav>
+  <span class="nav-index">Índice</span>
+  <button onclick="showSection('introducao')" class="active" data-section="introducao">Introdução</button>
+  <button onclick="showSection('eja')" data-section="eja">EJA</button>
+  <button onclick="showSection('gestao')" data-section="gestao">Gestão</button>
+  <button onclick="showSection('experiencias')" data-section="experiencias">Experiências</button>
+  <button onclick="showSection('depoimentos')" data-section="depoimentos">Depoimentos</button>
+</nav>
+
+<main>
+
+  <!-- INTRODUÇÃO -->
+  <section id="introducao" class="active">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <div class="section-title-block">
+        <h2>Introdução ao<br>Observatório</h2>
+        <p class="subtitle">Contexto e proposta</p>
+      </div>
+    </div>
+    <div class="prose">
+      Este observatório apresenta reflexões e informações sobre o estágio em Educação de Jovens e Adultos (EJA) e em Gestão Escolar. A proposta é fornecer conteúdos educativos e experiências práticas para quem deseja conhecer os desafios e práticas pedagógicas nestes contextos.
+    </div>
+    <blockquote class="intro-pull">
+      "O estágio não é apenas observação — é imersão, questionamento e reinvenção da prática pedagógica."
+    </blockquote>
+    <div class="prose">
+      Ao longo destas páginas, você encontrará registros de práticas, metodologias e depoimentos que revelam a riqueza do trabalho com a diversidade humana na escola.
+    </div>
+    <div class="cards">
+      <div class="card">
+        <div class="card-num">Campo 01</div>
+        <h3>Educação de Jovens e Adultos</h3>
+        <p>Compreender trajetórias interrompidas e reconectar sujeitos ao direito de aprender em qualquer fase da vida.</p>
+      </div>
+      <div class="card">
+        <div class="card-num">Campo 02</div>
+        <h3>Gestão Escolar</h3>
+        <p>Vivenciar a dimensão administrativa e pedagógica que sustenta o projeto coletivo de uma escola.</p>
+      </div>
+      <div class="card">
+        <div class="card-num">Campo 03</div>
+        <h3>Formação Docente</h3>
+        <p>Articular teoria e prática em contextos reais, desenvolvendo a identidade profissional do futuro educador.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- EJA -->
+  <section id="eja">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <div class="section-title-block">
+        <h2>Estágio na Educação<br>de Jovens e Adultos</h2>
+        <p class="subtitle">Práticas e metodologias</p>
+      </div>
+    </div>
+    <div class="prose">
+      O estágio em EJA permite compreender a diversidade de trajetórias escolares dos estudantes adultos e jovens. Cada sala de aula é um universo de experiências de vida que desafiam e enriquecem a formação docente.
+    </div>
+    <div class="img-block">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Adult_education_class.jpg/640px-Adult_education_class.jpg" alt="Aula de EJA">
+      <div class="img-caption">Registro de sala de aula — Educação de Jovens e Adultos</div>
+    </div>
+    <div class="cards">
+      <div class="card">
+        <div class="card-num">Prática 01</div>
+        <h3>Planejamento Adaptado</h3>
+        <p>Elaboração de aulas que respeitam os diferentes níveis de escolaridade e as experiências dos estudantes.</p>
+      </div>
+      <div class="card">
+        <div class="card-num">Prática 02</div>
+        <h3>Alfabetização e Letramento</h3>
+        <p>Metodologias que articulam a palavra à vida, partindo do contexto e da história de cada sujeito.</p>
+      </div>
+      <div class="card">
+        <div class="card-num">Prática 03</div>
+        <h3>Tecnologias Didáticas</h3>
+        <p>Uso de recursos inovadores que ampliam o acesso e tornam a aprendizagem significativa e contemporânea.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- GESTÃO -->
+  <section id="gestao">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <div class="section-title-block">
+        <h2>Estágio em<br>Gestão Escolar</h2>
+        <p class="subtitle">Processos e liderança pedagógica</p>
+      </div>
+    </div>
+    <div class="prose">
+      O estágio em gestão escolar permite vivenciar os processos administrativos e pedagógicos que sustentam o funcionamento da escola como instituição e como comunidade de aprendizagem.
+    </div>
+    <div class="img-block">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/0/09/School_administration.jpg" alt="Gestão Escolar" onerror="this.style.display='none'">
+      <div class="img-caption">Ambiente de gestão e coordenação escolar</div>
+    </div>
+    <div class="cards">
+      <div class="card">
+        <div class="card-num">Eixo 01</div>
+        <h3>Planejamento Institucional</h3>
+        <p>Organização de atividades, calendários e projetos que estruturam a vida escolar ao longo do ano.</p>
+      </div>
+      <div class="card">
+        <div class="card-num">Eixo 02</div>
+        <h3>Gestão de Equipe</h3>
+        <p>Apoio a docentes, comunicação entre pares e construção de uma cultura colaborativa na escola.</p>
+      </div>
+      <div class="card">
+        <div class="card-num">Eixo 03</div>
+        <h3>Projetos Pedagógicos</h3>
+        <p>Desenvolvimento de projetos que integram a comunidade escolar e respondem às demandas sociais locais.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPERIÊNCIAS -->
+  <section id="experiencias">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <div class="section-title-block">
+        <h2>Experiências<br>de Estágio</h2>
+        <p class="subtitle">Relatos e aprendizagens</p>
+      </div>
+    </div>
+    <div class="prose">
+      Relatos e práticas desenvolvidas durante o estágio ajudam a refletir sobre o processo de formação. Cada experiência revela a complexidade e a beleza do trabalho pedagógico.
+    </div>
+    <ul class="exp-list">
+      <li>
+        <span class="exp-num">I</span>
+        <div class="exp-text">
+          <strong>Oficinas de Alfabetização</strong>
+          <span>Atividades práticas voltadas a jovens e adultos, integrando leitura, escrita e interpretação a partir de temas do cotidiano e da cultura popular.</span>
+        </div>
+      </li>
+      <li>
+        <span class="exp-num">II</span>
+        <div class="exp-text">
+          <strong>Projetos de Integração</strong>
+          <span>Iniciativas que promovem o diálogo entre professores e estudantes, fortalecendo o senso de pertencimento e a construção coletiva do conhecimento.</span>
+        </div>
+      </li>
+      <li>
+        <span class="exp-num">III</span>
+        <div class="exp-text">
+          <strong>Planejamento e Avaliação</strong>
+          <span>Elaboração de sequências didáticas e instrumentos avaliativos que consideram a heterogeneidade das turmas e os objetivos de aprendizagem.</span>
+        </div>
+      </li>
+      <li>
+        <span class="exp-num">IV</span>
+        <div class="exp-text">
+          <strong>Acompanhamento de Reuniões Pedagógicas</strong>
+          <span>Participação em conselhos de classe, reuniões de planejamento e momentos de formação continuada da equipe docente.</span>
+        </div>
+      </li>
+      <li>
+        <span class="exp-num">V</span>
+        <div class="exp-text">
+          <strong>Registros Reflexivos</strong>
+          <span>Produção de diários de campo e portfólios que documentam e problematizam as observações e intervenções realizadas ao longo do estágio.</span>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <!-- DEPOIMENTOS -->
+  <section id="depoimentos">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <div class="section-title-block">
+        <h2>Depoimentos<br>&amp; Vozes</h2>
+        <p class="subtitle">Quem viveu, conta</p>
+      </div>
+    </div>
+    <div class="prose">
+      O estágio transforma quem o vive. Estas vozes revelam como o contato com a realidade escolar remodela percepções, amplia horizontes e consolida compromissos com a educação pública.
+    </div>
+    <div class="testimonials">
+      <div class="testimonial">
+        <blockquote>
+          O estágio em EJA me permitiu perceber a importância de estratégias diferenciadas para cada estudante. Vi que cada pessoa carrega uma história que precisa ser reconhecida para que o aprendizado aconteça.
+        </blockquote>
+        <cite>João Silva — Estagiário EJA</cite>
+      </div>
+      <div class="testimonial">
+        <blockquote>
+          Na gestão escolar aprendi como organizar processos e apoiar professores de forma eficiente. Compreendi que gerir uma escola é, acima de tudo, cuidar de pessoas e de projetos coletivos.
+        </blockquote>
+        <cite>Maria Souza — Estagiária Gestão</cite>
+      </div>
+      <div class="testimonial">
+        <blockquote>
+          Foi transformador ver adultos descobrindo o prazer da leitura. Isso me fez entender porque escolhi a educação como profissão.
+        </blockquote>
+        <cite>Carlos Lima — Estagiário EJA</cite>
+      </div>
+      <div class="testimonial">
+        <blockquote>
+          Participar das reuniões pedagógicas abriu meus olhos para a dimensão coletiva da docência. Ensinar não é um ato solitário.
+        </blockquote>
+        <cite>Ana Ferreira — Estagiária Gestão</cite>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span class="footer-brand">Observatório EJA</span>
+  <span>Estágio Supervisionado &mdash; Pedagogia</span>
+  <span>&copy; 2026</span>
+</footer>
+
+<script>
+  // Custom cursor
+  const cur = document.getElementById('cur');
+  const ring = document.getElementById('ring');
+  document.addEventListener('mousemove', e => {
+    cur.style.left = e.clientX + 'px';
+    cur.style.top = e.clientY + 'px';
+    setTimeout(() => {
+      ring.style.left = e.clientX + 'px';
+      ring.style.top = e.clientY + 'px';
+    }, 60);
+  });
+
+  // Nav & sections
+  function showSection(id) {
+    document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelector(`[data-section="${id}"]`).classList.add('active');
+    window.scrollTo({ top: document.querySelector('nav').offsetTop - 10, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
